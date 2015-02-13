@@ -1,4 +1,5 @@
 <?php 
+require 'update.php';
 $update = new AutoUpdate(true);
 $update->currentVersion = 0; //版本号，整数
 $update->updateUrl = 'http://api.liujiantao.me/update'; //更新服务器URL

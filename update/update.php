@@ -1,9 +1,8 @@
 <?php
-
 /*
- * Set the script max execution time
+ * 设置脚本最大执行时间
  */
-ini_set('max_execution_time', 60);
+ini_set('max_execution_time', 600);
 
 define('UPDATE_DIR_TEMP', dirname(__FILE__).'/temp/');
 define('UPDATE_DIR_INSTALL', dirname(__FILE__).'/../');
@@ -82,7 +81,7 @@ class AutoUpdate {
 	/*
 	 * 创建新实例
 	 *
-	 * @param bool $log Default: false
+	 * @param bool $log 默认: false
 	 */
 	public function __construct($log = false) {
 		$this->_log = $log;
@@ -91,7 +90,7 @@ class AutoUpdate {
 	/* 
 	 * 日志记录相关
 	 *
-	 * @param string $message The message
+	 * @param string $message 信息
 	 *
 	 * @return void
 	 */
@@ -107,7 +106,7 @@ class AutoUpdate {
 				fclose($log);
 			}
 			else {
-				die('Could not write log file!');
+				die('无法写入日志文件!');
 			}
 		}
 	}
@@ -115,7 +114,7 @@ class AutoUpdate {
 	/*
 	 * 获取错误相关
 	 *
-	 * @return string Last error
+	 * @return string 最后的错误
 	 */
 	public function getLastError() {
 		if (!is_null($this->_lastError))
@@ -143,16 +142,16 @@ class AutoUpdate {
 	/*
 	 * 检查新版本
 	 *
-	 * @return string The latest version
+	 * @return string 最新版本
 	 */
 	public function checkUpdate() {
-		$this->log('Checking for a new update. . .');
+		$this->log('检查更新. . .');
 		
 		$updateFile = $this->updateUrl.'/update.ini';
 		
 		$update = @file_get_contents($updateFile);
 		if ($update === false) {
-			$this->log('Could not retrieve update file `'.$updateFile.'`!');
+			$this->log('无法获取更新文件 `'.$updateFile.'`!');
 			return false;
 		}
 		else {
@@ -170,7 +169,7 @@ class AutoUpdate {
 					}
 				}
 				
-				$this->log('New version found `'.$latest.'`.');
+				$this->log('发现新版本 `'.$latest.'`.');
 				$this->latestVersion = $keyOld;
 				$this->latestVersionName = $latest;
 				$this->latestUpdate = $update;
@@ -178,7 +177,7 @@ class AutoUpdate {
 				return $keyOld;
 			}
 			else {
-				$this->log('Unable to parse update file!');
+				$this->log('无法解压更新文件!');
 				return false;
 			}
 		}
@@ -187,27 +186,27 @@ class AutoUpdate {
 	/*
 	 * 下载更新
 	 *
-	 * @param string $updateUrl Url where to download from
-	 * @param string $updateFile Path where to save the download
+	 * @param string $updateUrl 更新文件URL
+	 * @param string $updateFile 下载文件保存目录
 	 */
 	public function downloadUpdate($updateUrl, $updateFile) {
-		$this->log('Downloading update...');
+		$this->log('正在下载更新...');
 		$update = @file_get_contents($updateUrl);
 		
 		if ($update === false) {
-			$this->log('Could not download update `'.$updateUrl.'`!');
+			$this->log('无法下载更新 `'.$updateUrl.'`!');
 			return false;
 		}
 		
 		$handle = fopen($updateFile, 'w');
 		
 		if (!$handle) {
-			$this->log('Could not save update file `'.$updateFile.'`!');
+			$this->log('无法保存更新文件 `'.$updateFile.'`!');
 			return false;
 		}
 		
 		if (!fwrite($handle, $update)) {
-			$this->log('Could not write to update file `'.$updateFile.'`!');
+			$this->log('无法执行更新文件 `'.$updateFile.'`!');
 			return false;
 		}
 		
@@ -219,7 +218,7 @@ class AutoUpdate {
 	/*
 	 * 安装更新
 	 *
-	 * @param string $updateFile Path to the update file
+	 * @param string $updateFile 更新文件路径
 	 */
 	public function install($updateFile) {
 		$zip = zip_open($updateFile);
@@ -228,52 +227,52 @@ class AutoUpdate {
 			$filename = zip_entry_name($file);
 			$foldername = $this->installDir.dirname($filename);
 			
-			$this->log('Updating `'.$filename.'`!');
+			$this->log('更新中 `'.$filename.'`!');
 			
 			if (!is_dir($foldername)) {
 				if (!mkdir($foldername, $this->dirPermissions, true)) {
-					$this->log('Could not create folder `'.$foldername.'`!');
+					$this->log('无法创建目录 `'.$foldername.'`!');
 				}
 			}
 			
 			$contents = zip_entry_read($file, zip_entry_filesize($file));
 			
-			//Skip if entry is a directory
+			//跳过目录
 			if (substr($filename, -1, 1) == '/')
 				continue;
 			
-			//Write to file
+			//写入文件
 			if (file_exists($this->installDir.$filename)) {
 				if (!is_writable($this->installDir.$filename)) {
-					$this->log('Could not update `'.$this->installDir.$filename.'`, not writable!');
+					$this->log('无法更新 `'.$this->installDir.$filename.'`, 不可写入!');
 					return false;
 				}
 			} else {
-				$this->log('The file `'.$this->installDir.$filename.'`, does not exist!');			
-				$new_file = fopen($this->installDir.$filename, "w") or $this->log('The file `'.$this->installDir.$filename.'`, could not be created!');
+				$this->log('文件 `'.$this->installDir.$filename.'`, 不存在!');			
+				$new_file = fopen($this->installDir.$filename, "w") or $this->log('文件 `'.$this->installDir.$filename.'`, 不能创建!');
 				fclose($new_file);
-				$this->log('The file `'.$this->installDir.$filename.'`, was succesfully created.');
+				$this->log('文件 `'.$this->installDir.$filename.'`, 创建成功.');
 			}
 			
 			$updateHandle = @fopen($this->installDir.$filename, 'w');
 			
 			if (!$updateHandle) {
-				$this->log('Could not update file `'.$this->installDir.$filename.'`!');
+				$this->log('无法更新文件 `'.$this->installDir.$filename.'`!');
 				return false;
 			}
 			
 			if (!fwrite($updateHandle, $contents)) {
-				$this->log('Could not write to file `'.$this->installDir.$filename.'`!');
+				$this->log('无法写入文件 `'.$this->installDir.$filename.'`!');
 				return false;
 			}
 			
 			fclose($updateHandle);
 			
-			//If file is a update script, include
+			//如果文件是更新脚本
 			if ($filename == $this->updateScriptName) {
-				$this->log('Try to include update script `'.$this->installDir.$filename.'`.');
+				$this->log('尝试更新 `'.$this->installDir.$filename.'`.');
 				require($this->installDir.$filename);
-				$this->log('Update script `'.$this->installDir.$filename.'` included!');
+				$this->log('更新脚本 `'.$this->installDir.$filename.'` 包含!');
 				unlink($this->installDir.$filename);
 			}
 		}
@@ -281,11 +280,11 @@ class AutoUpdate {
 		zip_close($zip);
 		
 		if ($this->removeTempDir) {
-			$this->log('Temporary directory `'.$this->tempDir.'` deleted.');
+			$this->log('临时目录 `'.$this->tempDir.'` 被删除.');
 			$this->_removeDir($this->tempDir);
 		}
 		
-		$this->log('Update `'.$this->latestVersion.'` installed.');
+		$this->log('更新 `'.$this->latestVersion.'` 安装完成.');
 		
 		return true;
 	}
@@ -295,7 +294,7 @@ class AutoUpdate {
 	 * 更新最新版本
 	 */
 	public function update() {
-		//Check for latest version
+		//检查最新版本
 		if ((is_null($this->latestVersion)) or (is_null($this->latestUpdate))) {
 			$this->checkUpdate();
 		}
@@ -304,41 +303,41 @@ class AutoUpdate {
 			return false;
 		}
 		
-		//Update
+		//更新
 		if ($this->latestVersion > $this->currentVersion) {
 			$this->log('Updating...');
 			
-			//Add slash at the end of the path
+			//排除文件
 			if ($this->tempDir[strlen($this->tempDir)-1] != '/');
 				$this->tempDir = $this->tempDir.'/';
 			
 			if ((!is_dir($this->tempDir)) and (!mkdir($this->tempDir, 0777, true))) {
-				$this->log('Temporary directory `'.$this->tempDir.'` does not exist and could not be created!');
+				$this->log('临时目录 `'.$this->tempDir.'` 不存在并且无法创建!');
 				return false;
 			}
 			
 			if (!is_writable($this->tempDir)) {
-				$this->log('Temporary directory `'.$this->tempDir.'` is not writeable!');
+				$this->log('临时目录 `'.$this->tempDir.'` 不可写入!');
 				return false;
 			}
 			
 			$updateFile = $this->tempDir.'/'.$this->latestVersion.'.zip';
 			$updateUrl = $this->updateUrl.'/'.$this->latestVersion.'.zip';
 			
-			//Download update
+			//下载更新
 			if (!is_file($updateFile)) {
 				if (!$this->downloadUpdate($updateUrl, $updateFile)) {
 					$this->log('无法下载更新!');
 					return false;
 				}
 				
-				$this->log('Latest update downloaded to `'.$updateFile.'`.');
+				$this->log('最新更新下载 `'.$updateFile.'`.');
 			}
 			else {
-				$this->log('Latest update already downloaded to `'.$updateFile.'`.');
+				$this->log('最新更新下载到 `'.$updateFile.'`.');
 			}
 			
-			//Unzip
+			//解压
 			return $this->install($updateFile);
 		}
 		else {
